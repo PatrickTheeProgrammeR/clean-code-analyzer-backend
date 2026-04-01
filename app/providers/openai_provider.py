@@ -12,12 +12,15 @@ class OpenAIProvider(AIProvider):
             raise AIProviderError("OPENAI_API_KEY is not set")
         self.client = AsyncOpenAI(api_key=api_key)
 
-    async def complete(self, prompt: str) -> str:
+    async def complete(self, prompt: str, *, json_response: bool = False) -> str:
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}]
-            )
+            kwargs = {
+                "model": "gpt-4o-mini",
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            if json_response:
+                kwargs["response_format"] = {"type": "json_object"}
+            response = await self.client.chat.completions.create(**kwargs)
             return response.choices[0].message.content
         except Exception as e:
             raise AIProviderError(f"OpenAI request failed: {str(e)}")

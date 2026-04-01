@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AnalyzeRequest(BaseModel):
@@ -18,7 +18,8 @@ class IssueResponse(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     score: int
-    issues: list[IssueResponse]
+    summary: str = ""
+    issues: list[IssueResponse] = Field(default_factory=list)
 
 
 class ReviewResponse(BaseModel):
