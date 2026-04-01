@@ -27,3 +27,12 @@ class ReviewResponse(BaseModel):
     comparison: str
     best_solution: str
     best_solution_explanation: str
+
+
+class GitHubFetchRequest(BaseModel):
+    url: str
+
+
+class GitHubFetchResponse(BaseModel):
+    code: str
+    filename: str | None = None

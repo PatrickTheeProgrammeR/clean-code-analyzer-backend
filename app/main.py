@@ -9,9 +9,10 @@ from app.exceptions import AIProviderError, InvalidAIResponseError
 
 app = FastAPI(title="Clean Code Analyzer")
 
+# Dev: Vite bywa na localhost lub 127.0.0.1 i na różnych portach (5173, 5174, …).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )
