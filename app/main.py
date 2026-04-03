@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,9 +10,12 @@ from app.exceptions import AIProviderError, InvalidAIResponseError
 
 app = FastAPI(title="Clean Code Analyzer")
 
-# Dev: Vite bywa na localhost lub 127.0.0.1 i na różnych portach (5173, 5174, …).
+raw_allowed_origins = os.getenv("CORS_ALLOW_ORIGINS", "")
+allow_origins = [origin.strip() for origin in raw_allowed_origins.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=allow_origins,
     allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_methods=["*"],
     allow_headers=["*"],
