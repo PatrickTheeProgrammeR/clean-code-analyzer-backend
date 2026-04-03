@@ -10,12 +10,8 @@ class OpenAIProvider(AIProvider):
     def __init__(self):
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            if sys.stdin.isatty():
-                while True:
-                    api_key = input("Podaj OPENAI_API_KEY: ").strip()
-                    if api_key:
-                        break
-                    print("Klucz nie może być pusty!")
+            if sys.stdin.isatty():  # terminal
+                api_key = input("Podaj OPENAI_API_KEY: (https://platform.openai.com/api-keys) ").strip()
             else:
                 raise AIProviderError("OPENAI_API_KEY is not set")
         self.client = AsyncOpenAI(api_key=api_key)
@@ -24,11 +20,18 @@ class OpenAIProvider(AIProvider):
         try:
             kwargs = {
                 "model": "gpt-4o-mini",
-                "messages": [{"role": "user", "content": prompt}],
+                "input": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": prompt}
+                        ]
+                    }
+                ],
             }
             if json_response:
-                kwargs["response_format"] = {"type": "json_object"}
-            response = await self.client.chat.completions.create(**kwargs)
-            return response.choices[0].message.content
+                kwargs["text"] = {"format": {"type": "json_object"}}
+            response = await self.client.responses.create(**kwargs)
+            return response.output_text
         except Exception as e:
-            raise AIProviderError(f"OpenAI request failed: {str(e)}")
+            raise AIProviderError(f"OpenAI request failed: {str(e)}") from e
