@@ -3,11 +3,13 @@ from pydantic import BaseModel, Field
 
 class AnalyzeRequest(BaseModel):
     code: str
+    api_key: str
 
 
 class ReviewRequest(BaseModel):
     original_code: str
     user_fix: str
+    api_key: str
 
 
 class IssueResponse(BaseModel):

@@ -16,25 +16,25 @@ from app.providers.openai_provider import OpenAIProvider
 router = APIRouter(prefix="/api")
 
 
-def get_code_analysis_service() -> CodeAnalysisService:
-    provider = OpenAIProvider()
+def get_code_analysis_service(api_key: str) -> CodeAnalysisService:
+    provider = OpenAIProvider(api_key=api_key)
     ai_service = AIService(provider=provider)
     return CodeAnalysisService(ai_service=ai_service)
 
 
 @router.post("/analyze-code", response_model=AnalyzeResponse)
 async def analyze_code(
-    request: AnalyzeRequest,
-    service: CodeAnalysisService = Depends(get_code_analysis_service)
+    request: AnalyzeRequest
 ):
+    service = get_code_analysis_service(request.api_key)
     return await service.analyze_code(request.code)
 
 
 @router.post("/review-user-fix", response_model=ReviewResponse)
 async def review_user_fix(
-    request: ReviewRequest,
-    service: CodeAnalysisService = Depends(get_code_analysis_service)
+    request: ReviewRequest
 ):
+    service = get_code_analysis_service(request.api_key)
     return await service.review_user_fix(
         original_code=request.original_code,
         user_fix=request.user_fix
