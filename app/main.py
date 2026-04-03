@@ -10,18 +10,40 @@ from app.exceptions import AIProviderError, InvalidAIResponseError
 
 app = FastAPI(title="Clean Code Analyzer")
 
-raw_allowed_origins = os.getenv("CORS_ALLOW_ORIGINS", "")
-allow_origins = [origin.strip() for origin in raw_allowed_origins.split(",") if origin.strip()]
+
+def _parse_origins(raw: str) -> list[str]:
+    out: list[str] = []
+    for part in raw.split(","):
+        o = part.strip().strip('"').strip("'")
+        if o:
+            out.append(o)
+    return out
+
+
+_restrict = os.getenv("CORS_RESTRICT", "").strip().lower() in ("1", "true", "yes")
+if _restrict:
+    allow_origins = _parse_origins(os.getenv("CORS_ALLOW_ORIGINS", ""))
+else:
+    allow_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.include_router(router)
+
+
+@app.get("/")
+async def root():
+    return {"service": "clean-code-analyzer", "docs": "/docs", "health": "/api/health"}
+
+
+@app.get("/health")
+async def health_alias():
+    return {"status": "ok"}
 
 
 @app.exception_handler(AIProviderError)
