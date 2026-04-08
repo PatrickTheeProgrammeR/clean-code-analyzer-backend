@@ -44,7 +44,10 @@ async def review_user_fix(
 @router.post("/fetch-github", response_model=GitHubFetchResponse)
 async def fetch_github(request: GitHubFetchRequest):
     try:
-        code, filename = await fetch_github_file(request.url)
+        code, filename = await fetch_github_file(
+            request.url,
+            github_token=request.github_token
+        )
     except GitHubFetchError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     except httpx.HTTPError as e:

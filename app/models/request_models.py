@@ -36,6 +36,7 @@ class ReviewResponse(BaseModel):
 
 class GitHubFetchRequest(BaseModel):
     url: str
+    github_token: str | None = None
 
 
 class GitHubFetchResponse(BaseModel):

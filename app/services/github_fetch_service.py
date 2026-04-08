@@ -32,17 +32,27 @@ def github_url_to_raw(url: str) -> str | None:
     return None
 
 
-async def fetch_github_file(url: str) -> tuple[str, str | None]:
+async def fetch_github_file(url: str, github_token: str | None = None) -> tuple[str, str | None]:
     raw = github_url_to_raw(url)
     if not raw:
         raise GitHubFetchError(
-            "Nie rozpoznano adresu. Użyj linku do pliku (widok blob) lub raw.githubusercontent.com."
+            "Niepoprawny link GitHub. Wklej bezpośredni link do pliku (blob/raw), a jeśli repo jest prywatne, podaj token."
         )
     filename = raw.rsplit("/", 1)[-1] if "/" in raw else None
+    headers = {"Accept": "text/plain,*/*"}
+    token = (github_token or "").strip()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        response = await client.get(raw, headers={"Accept": "text/plain,*/*"})
+        response = await client.get(raw, headers=headers)
+    if response.status_code in (401, 403):
+        raise GitHubFetchError(
+            "Brak dostępu do pliku. Dla prywatnego repo podaj poprawny Personal Access Token GitHub."
+        )
     if response.status_code == 404:
-        raise GitHubFetchError("Plik nie został znaleziony (404). Sprawdź branch i ścieżkę.")
+        raise GitHubFetchError(
+            "Nie udało się pobrać pliku. Sprawdź link do konkretnego pliku albo to, czy repozytorium nie jest prywatne."
+        )
     response.raise_for_status()
     text = response.text
     if not text.strip():
