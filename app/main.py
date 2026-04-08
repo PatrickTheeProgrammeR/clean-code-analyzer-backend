@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.routers.analyze import router
-from app.exceptions import AIProviderError, InvalidAIResponseError
+from app.exceptions import AIProviderError, InvalidAIResponseError, InvalidCodeInputError
 
 app = FastAPI(title="Clean Code Analyzer")
 
@@ -59,4 +59,12 @@ async def invalid_response_error_handler(request, exc):
     return JSONResponse(
         status_code=500,
         content={"error": str(exc)}
+    )
+
+
+@app.exception_handler(InvalidCodeInputError)
+async def invalid_code_input_error_handler(request, exc):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": str(exc)}
     )

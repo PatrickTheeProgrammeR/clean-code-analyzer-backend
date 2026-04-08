@@ -3,7 +3,7 @@ from typing import Literal
 
 
 class AnalyzeRequest(BaseModel):
-    code: str
+    code: str = Field(max_length=5000)
     api_key: str
     analysis_standard: Literal["clean_code", "pep8", "clean_code_pep8"] = "clean_code_pep8"
 

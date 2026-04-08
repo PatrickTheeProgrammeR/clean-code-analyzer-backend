@@ -1,7 +1,7 @@
 import json
 import re
 from app.services.ai_service import AIService
-from app.exceptions import InvalidAIResponseError
+from app.exceptions import InvalidAIResponseError, InvalidCodeInputError
 
 ANALYZE_PROMPT = """
 Jesteś seniorem Pythona i ekspertem jakości kodu.
@@ -164,6 +164,7 @@ class CodeAnalysisService:
         self.ai_service = ai_service
 
     async def analyze_code(self, code: str, analysis_standard: str = "clean_code_pep8") -> dict:
+        self._validate_code_input(code)
         prompt = ANALYZE_PROMPT.format(
             code=code,
             analysis_standard_description=self._analysis_standard_description(analysis_standard),
@@ -197,3 +198,24 @@ class CodeAnalysisService:
         return (
             "Clean Code oraz PEP 8 jednocześnie: czytelność i projekt kodu wraz ze stylem i formatowaniem Pythona"
         )
+
+    @staticmethod
+    def _validate_code_input(code: str) -> None:
+        # Reject inputs that are only comments, separators, or symbols.
+        meaningful_lines = []
+        for raw_line in code.splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            meaningful_lines.append(line)
+
+        if not meaningful_lines:
+            raise InvalidCodeInputError(
+                "Nie wykryto kodu Python do analizy. Wklej fragment zawierający instrukcje, definicje lub wyrażenia."
+            )
+
+        merged = "\n".join(meaningful_lines)
+        if not re.search(r"[A-Za-z_]", merged):
+            raise InvalidCodeInputError(
+                "Wklejony fragment nie wygląda na kod Python. Usuń znaki pomocnicze i wklej właściwy kod."
+            )
