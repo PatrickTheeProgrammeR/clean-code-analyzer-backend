@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class AnalyzeRequest(BaseModel):
     code: str
     api_key: str
+    analysis_standard: Literal["clean_code", "pep8", "clean_code_pep8"] = "clean_code_pep8"
 
 
 class ReviewRequest(BaseModel):

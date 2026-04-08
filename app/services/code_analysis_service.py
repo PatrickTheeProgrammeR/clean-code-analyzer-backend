@@ -4,8 +4,9 @@ from app.services.ai_service import AIService
 from app.exceptions import InvalidAIResponseError
 
 ANALYZE_PROMPT = """
-Jesteś seniorem Pythona i ekspertem Clean Code. Przeanalizuj poniższy kod pod kątem:
-czytelności, nazewnictwa, małych funkcji, SRP, braku duplikacji, utrzymywalności.
+Jesteś seniorem Pythona i ekspertem jakości kodu.
+Przeanalizuj poniższy kod według wybranego standardu: {analysis_standard_description}.
+Skup się TYLKO na wybranym standardzie.
 
 Zwróć WYŁĄCZNIE jeden obiekt JSON (bez markdown, bez ```), w dokładnie tej strukturze:
 
@@ -162,8 +163,11 @@ class CodeAnalysisService:
     def __init__(self, ai_service: AIService):
         self.ai_service = ai_service
 
-    async def analyze_code(self, code: str) -> dict:
-        prompt = ANALYZE_PROMPT.format(code=code)
+    async def analyze_code(self, code: str, analysis_standard: str = "clean_code_pep8") -> dict:
+        prompt = ANALYZE_PROMPT.format(
+            code=code,
+            analysis_standard_description=self._analysis_standard_description(analysis_standard),
+        )
         response = await self.ai_service.complete(prompt, json_response=True)
         return _parse_analyze_response(response)
 
@@ -177,3 +181,19 @@ class CodeAnalysisService:
 
     def _parse_review_response(self, response: str) -> dict:
         return _parse_json_object(response)
+
+    @staticmethod
+    def _analysis_standard_description(analysis_standard: str) -> str:
+        if analysis_standard == "clean_code":
+            return (
+                "Clean Code (czytelność, nazewnictwo, małe funkcje, SRP, brak duplikacji, utrzymywalność), "
+                "bez oceniania zgodności z PEP 8"
+            )
+        if analysis_standard == "pep8":
+            return (
+                "PEP 8 (styl i formatowanie Pythona: nazwy, wcięcia, długość linii, odstępy, organizacja importów), "
+                "bez oceniania zasad Clean Code"
+            )
+        return (
+            "Clean Code oraz PEP 8 jednocześnie: czytelność i projekt kodu wraz ze stylem i formatowaniem Pythona"
+        )

@@ -1,5 +1,5 @@
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from app.models.request_models import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -27,7 +27,7 @@ async def analyze_code(
     request: AnalyzeRequest
 ):
     service = get_code_analysis_service(request.api_key)
-    return await service.analyze_code(request.code)
+    return await service.analyze_code(request.code, request.analysis_standard)
 
 
 @router.post("/review-user-fix", response_model=ReviewResponse)
